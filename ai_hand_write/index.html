@@ -7,69 +7,119 @@
 
 <body>
   <h1>Teachable Machine Model</h1>
-  <button onclick="init()">Load Model</button>
+
+  <button onclick="setMode('webcam')">Webcam</button>
+  <button onclick="setMode('upload')">Upload Image</button>
+
   <p id="status">Model not loaded</p>
-  
-  <div id="output"></div>
+
   <div id="webcam-container"></div>
+
+  <input type="file" id="fileInput" accept="image/*" style="display:none;">
+
+  <div id="image-container"></div>
   <div id="label-container"></div>
+  
   <!-- TensorFlow + Teachable Machine library -->
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest"></script>
   <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8.5/dist/teachablemachine-image.min.js"></script>
   
   <script>
     const URL = "./"; // folder where model files are stored
-    let model, maxPredictions;
-    async function init() {
-      try {
-        const modelURL = URL + "model.json";
-        const metadataURL = URL + "metadata.json";
-        model = await tmImage.load(modelURL, metadataURL);
-        maxPredictions = model.getTotalClasses();
-        document.getElementById("status").innerText = "Model loaded!";
-        await setupWebcam();
-        loop();
+let model, webcam, labelContainer, maxPredictions;
+let currentMode = null;
+
+async function init() {
+  const modelURL = URL + "model.json";
+  const metadataURL = URL + "metadata.json";
+
+  model = await tmImage.load(modelURL, metadataURL);
+  maxPredictions = model.getTotalClasses();
+
+  document.getElementById("status").innerText = "Model loaded!";
+}
+
+function setMode(mode) {
+  currentMode = mode;
+
+  // clear UI
+  document.getElementById("webcam-container").innerHTML = "";
+  document.getElementById("image-container").innerHTML = "";
+  document.getElementById("label-container").innerHTML = "";
+
+  if (mode === "webcam") {
+    startWebcam();
+  }
+
+  if (mode === "upload") {
+    startUpload();
+  }
+}
+
+async function startWebcam() {
+  webcam = new tmImage.Webcam(300, 300, true);
+  await webcam.setup();
+  await webcam.play();
+
+  document.getElementById("webcam-container").appendChild(webcam.canvas);
+
+  window.requestAnimationFrame(webcamLoop);
+
+  setupLabels();
+}
+
+async function webcamLoop() {
+  if (currentMode !== "webcam") return;
+
+  webcam.update();
+  await predict(webcam.canvas);
+
+  window.requestAnimationFrame(webcamLoop);
+}
+
+function startUpload() {
+  const input = document.getElementById("fileInput");
+  input.style.display = "block";
+
+  input.onchange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const img = new Image();
+    img.src = URL.createObjectURL(file);
+
+    img.onload = async () => {
+      document.getElementById("image-container").innerHTML = "";
+      document.getElementById("image-container").appendChild(img);
+
+      await predict(img);
+    };
+  };
+
+  setupLabels();
+}
+
+function setupLabels() {
+  labelContainer = document.getElementById("label-container");
+  labelContainer.innerHTML = "";
+
+  for (let i = 0; i < maxPredictions; i++) {
+    labelContainer.appendChild(document.createElement("div"));
+  }
+}
+
+async function predict(input) {
+  if (!model) return;
+
+  const prediction = await model.predict(input);
+
+  for (let i = 0; i < maxPredictions; i++) {
+    labelContainer.childNodes[i].innerHTML =
+      prediction[i].className + ": " +
+      prediction[i].probability.toFixed(2);
+  }
+}
   
-      } catch (err) {
-        console.error(err);
-        document.getElementById("status").innerText = "FAILED to load model";
-      }
-    }
-
-    async function setupWebcam() {
-      const flip = true;
-
-      webcam = new tmImage.Webcam(300, 300, flip);
-      await webcam.setup();        // ask for camera permission
-      await webcam.play();
-
-      window.requestAnimationFrame(loop);
-
-      document.getElementById("webcam-container").appendChild(webcam.canvas);
-
-      labelContainer = document.getElementById("label-container");
-      labelContainer.innerHTML = "";
-      for (let i = 0; i < maxPredictions; i++) {
-        labelContainer.appendChild(document.createElement("div"));
-      }
-    }
-
-    async function loop() {
-      webcam.update();
-      await predict();
-      window.requestAnimationFrame(loop);
-    }
-  
-    async function predict() {
-      const prediction = await model.predict(webcam.canvas);
-
-      for (let i = 0; i < maxPredictions; i++) {
-        const classPrediction =
-          prediction[i].className + ": " + prediction[i].probability.toFixed(2);
-
-        labelContainer.childNodes[i].innerHTML = classPrediction;
-      }
-    }
   </script>
 </body>
 </html>
