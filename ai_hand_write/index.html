@@ -70,6 +70,7 @@
   <button onclick="init()">Load Model</button>
   <button onclick="setMode('webcam')">Webcam</button>
   <button onclick="setMode('upload')">Upload Image</button>
+  <button onclick="takeSnapshot()">📸 Take Snapshot</button>
 
   <p id="status">Model not loaded</p>
 
@@ -158,7 +159,40 @@ function startUpload() {
 
   setupLabels();
 }
+async function takeSnapshot() {
+  if (!model) {
+    alert("Load model first");
+    return;
+  }
 
+  if (!webcam) {
+    alert("Start webcam first");
+    return;
+  }
+
+  // grab current frame from webcam
+  const snapshot = webcam.canvas;
+
+  // run prediction once (STATIC image behavior)
+  const prediction = await model.predict(snapshot);
+
+  // update UI using same label system
+  for (let i = 0; i < maxPredictions; i++) {
+    const prob = prediction[i].probability;
+
+    const row = labelContainer.childNodes[i];
+    const label = row.querySelector(".label");
+    const bar = row.querySelector(".bar-fill");
+
+    label.innerHTML =
+      prediction[i].className +
+      " — " +
+      (prob * 100).toFixed(1) + "%";
+
+    bar.style.width = (prob * 100) + "%";
+  }
+}
+  
 function setupLabels() {
   labelContainer = document.getElementById("label-container");
   labelContainer.innerHTML = "";
