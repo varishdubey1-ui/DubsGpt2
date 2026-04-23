@@ -42,7 +42,21 @@
     width: 0%;
     transition: width 0.2s ease;
   }
+  .best {
+    background: rgba(34, 197, 94, 0.15);
+    border-left: 4px solid #22c55e;
+    padding-left: 6px;
+    border-radius: 6px;
+  }
 
+  .best .bar-fill {
+    background: #22c55e !important;
+  }
+
+  .best .label-name {
+    color: #22c55e;
+    font-weight: bold;
+  }
   #webcam-container canvas,
   #image-container img {
     border-radius: 10px;
@@ -177,7 +191,18 @@ async function predict(input) {
 
   const prediction = await model.predict(input);
 
-  for (let i = 0; i < maxPredictions; i++) {
+  let highestIndex = 0;
+  let highestProb = 0;
+
+  // find strongest prediction
+  for (let i = 0; i < prediction.length; i++) {
+    if (prediction[i].probability > highestProb) {
+      highestProb = prediction[i].probability;
+      highestIndex = i;
+    }
+  }
+
+  for (let i = 0; i < prediction.length; i++) {
     const prob = prediction[i].probability;
 
     const row = labelContainer.childNodes[i];
@@ -189,8 +214,16 @@ async function predict(input) {
       (prob * 100).toFixed(1) + "%";
 
     bar.style.width = (prob * 100) + "%";
+
+    // remove previous highlight
+    row.classList.remove("best");
+
+    // highlight strongest prediction
+    if (i === highestIndex) {
+      row.classList.add("best");
+    }
   }
-}   
+}
   
   </script>
 </body>
