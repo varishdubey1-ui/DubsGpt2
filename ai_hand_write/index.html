@@ -25,13 +25,13 @@
   <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8.5/dist/teachablemachine-image.min.js"></script>
   
   <script>
-    const URL = "./"; // folder where model files are stored
+    const MODEL_URL = "./"; // folder where model files are stored
 let model, webcam, labelContainer, maxPredictions;
 let currentMode = null;
 
 async function init() {
-  const modelURL = URL + "model.json";
-  const metadataURL = URL + "metadata.json";
+  const modelURL = MODEL_URL + "model.json";
+  const metadataURL = MODEL_URL + "metadata.json";
 
   model = await tmImage.load(modelURL, metadataURL);
   maxPredictions = model.getTotalClasses();
