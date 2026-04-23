@@ -3,6 +3,9 @@
 <html>
 <head>
   <title>Teachable Machine Demo</title>
+    <!-- TensorFlow + Teachable Machine library -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest"></script>
 </head>
 
 <body>
@@ -11,9 +14,7 @@
   <p id="status">Model not loaded</p>
   
   <div id="output"></div>
-  <!-- TensorFlow + Teachable Machine library -->
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest"></script>
+  
   <script>
     const URL = "./model/"; // folder where model files are stored
     let model, maxPredictions;
