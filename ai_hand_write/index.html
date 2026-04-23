@@ -3,6 +3,52 @@
 <html>
 <head>
   <title>Teachable Machine Demo</title>
+  <style>
+  body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    background: #0f172a;
+    color: white;
+  }
+
+  #label-container {
+    margin-top: 20px;
+    width: 300px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .label-row {
+    margin: 8px 0;
+    text-align: left;
+  }
+
+  .label-name {
+    font-size: 14px;
+    margin-bottom: 3px;
+  }
+
+  .bar-bg {
+    width: 100%;
+    height: 10px;
+    background: #334155;
+    border-radius: 5px;
+    overflow: hidden;
+  }
+
+  .bar-fill {
+    height: 10px;
+    background: #38bdf8;
+    width: 0%;
+    transition: width 0.2s ease;
+  }
+
+  #webcam-container canvas,
+  #image-container img {
+    border-radius: 10px;
+    margin-top: 10px;
+  }
+</style>
 </head>
 
 <body>
@@ -104,7 +150,25 @@ function setupLabels() {
   labelContainer.innerHTML = "";
 
   for (let i = 0; i < maxPredictions; i++) {
-    labelContainer.appendChild(document.createElement("div"));
+    const row = document.createElement("div");
+    row.className = "label-row";
+
+    const name = document.createElement("div");
+    name.className = "label-name";
+    name.innerHTML = "Class " + (i + 1);
+
+    const barBg = document.createElement("div");
+    barBg.className = "bar-bg";
+
+    const barFill = document.createElement("div");
+    barFill.className = "bar-fill";
+
+    barBg.appendChild(barFill);
+
+    row.appendChild(name);
+    row.appendChild(barBg);
+
+    labelContainer.appendChild(row);
   }
 }
 
@@ -114,11 +178,19 @@ async function predict(input) {
   const prediction = await model.predict(input);
 
   for (let i = 0; i < maxPredictions; i++) {
-    labelContainer.childNodes[i].innerHTML =
-      prediction[i].className + ": " +
-      prediction[i].probability.toFixed(2);
+    const prob = prediction[i].probability;
+
+    const row = labelContainer.childNodes[i];
+    const name = row.querySelector(".label-name");
+    const bar = row.querySelector(".bar-fill");
+
+    name.innerHTML =
+      prediction[i].className + " — " +
+      (prob * 100).toFixed(1) + "%";
+
+    bar.style.width = (prob * 100) + "%";
   }
-}
+}   
   
   </script>
 </body>
