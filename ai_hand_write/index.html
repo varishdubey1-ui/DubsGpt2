@@ -9,6 +9,7 @@
     text-align: center;
     background: #0f172a;
     color: white;
+    position: relative;
   }
 
   #label-container {
@@ -62,10 +63,18 @@
     border-radius: 10px;
     margin-top: 10px;
   }
+ #logo {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    width: 60px;   /* adjust size */
+    height: auto;
+  }
 </style>
 </head>
 
 <body>
+  <img id="logo" src="DubsGPT2.png" alt="logo">
   <h1>Handwriting Prediction Model</h1>
   <button onclick="init()">Load Model</button>
   <button onclick="setMode('webcam')">Webcam</button>
